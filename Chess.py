@@ -35,17 +35,25 @@ class Player(Enum):
     WHITE = 1
     BLACK = -1
 
+class Flags(Enum):
+    KING_WHITE_POS = 8
+    KING_BLACK_POS = 9
+    CURRENT_PLAYER = 10
+
 
 class Chess:
     def __init__(self):
+        # not needed helper board to better visualize the board indexes
         self.board = [x for x in range(0, 128)]
+        # the actual board containing all the figures and flags
         self.figures = [0 for x in range(0, 128)]
+        # test setup , later here should be the hole board set
         self.figures[3] = Piece.BLACK_KING.value
         self.figures[115] = Piece.WHITE_KING.value
         self.figures[19] = Piece.BLACK_BISHOP.value
-        self.king_pos_white = 115
-        self.king_pos_black = 19
-        self.current_player = Player.WHITE
+        self.figures[Flags.KING_WHITE_POS] = 115
+        self.figures[Flags.KING_BLACK_POS] = 19
+        self.figures[Flags.CURRENT_PLAYER] = Player.WHITE.value
 
     def make_move(self, from_idx, to_idx, player):
         # check if the move is valid
@@ -135,18 +143,18 @@ class Chess:
     def _get_own_king_pos(self, color):
         # black
         if (color):
-            return self.king_pos_black
+            return self.figures[Flags.KING_BLACK_POS.value]
         # white
         else:
-            return self.king_pos_white
+            return self.figures[Flags.KING_WHITE_POS.value]
 
     def _get_enemy_king_pos(self, color):
         # black
         if (color):
-            return self.king_pos_white
+            return self.figures[Flags.KING_WHITE_POS.value]
         # white
         else:
-            return self.king_pos_black
+            return self.figures[Flags.KING_BLACK_POS.value]
 
     def _is_legal(self, from_idx, to_idx, color):
         king_danger_direction = Chess._danger_direction(from_idx, self._get_own_king_pos(color))

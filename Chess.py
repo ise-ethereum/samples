@@ -43,6 +43,22 @@ class Chess:
         self.figures[3] = Piece.BLACK_KING.value
         self.figures[115] = Piece.WHITE_KING.value
         self.figures[19] = Piece.BLACK_BISHOP.value
+        self.king_pos_white = 115
+        self.king_pos_black = 19
+        self.current_player = Player.WHITE
+
+    def make_move(self, from_idx, to_idx, player):
+        # check if the move is valid
+        if self._is_valid(from_idx, to_idx, player):
+            self._make_temporal_move(from_idx, to_idx, player)
+        # else abort
+        else:
+            return -1
+        #
+        if not self._is_legal(from_idx, to_idx, player):
+            self._roll_back()
+            return -1
+        self._test_check(from_idx, to_idx, player)
 
     def print_board(self):
         print(np.array(self.figures).reshape(8, 16)[:, :8])
@@ -50,13 +66,13 @@ class Chess:
     def print_game_indexes(self):
         print(np.array(self.board).reshape(8, 16)[:, :8])
 
-    def set_figure(self, rank, file, piece):
+    def _set_figure(self, rank, file, piece):
         index = rank * 16 + file
         self.figures[index] = piece
 
-    def danger_fields_normal(self, king_idx, figure_idx):
+    def _danger_fields_normal(self, king_idx, figure_idx):
         # get the danger direction
-        direction = self.danger_direction(king_idx, figure_idx)
+        direction = self._danger_direction(king_idx, figure_idx)
 
         # add the fields in that direction
         current_idx = king_idx + direction.value
@@ -66,8 +82,8 @@ class Chess:
             current_idx += direction.value
         return danger_fields
 
-    def danger_fields_knight(self, king_idx, figure_idx):
-        direction = self.danger_direction(king_idx, figure_idx)
+    def _danger_fields_knight(self, king_idx, figure_idx):
+        direction = self._danger_direction(king_idx, figure_idx)
         # take care of the special knight case
         # take the first step for both directions
         current_idx_first = king_idx
@@ -94,20 +110,7 @@ class Chess:
             danger_fields.append(self.board[current_idx_second])
         return danger_fields
 
-    def make_move(self, from_idx, to_idx):
-
-        if self.is_valid:
-            self.make_temporal_move(from_idx, to_idx)
-        # else abort
-        else:
-            return -1
-
-        if not self.is_legal():
-            self.roll_back()
-            return -1
-        self.set_check()
-
-    def make_temporal_move(self, from_idx, to_idx):
+    def _make_temporal_move(self, from_idx, to_idx, color):
         # save the move idx for possible rollback
         self.from_idx = from_idx
         self.to_idx = to_idx
@@ -119,26 +122,48 @@ class Chess:
         self.figures[to_idx] = self.figures[from_idx]
         self.figures[from_idx] = 0
 
-    def set_check(self):
+    def _test_check(self, from_idx, to_idx, color):
         # TODO: set the check flag if appropiate
         pass
 
-    def roll_back(self):
+    def _roll_back(self):
         # TODO: reset special flags that might got changed
         self.figures[self.from_idx] = self.from_figure
         self.figures[self.to_idx] = self.to_figure
         pass
 
-    def is_legal(self):
-        # TODO: check if a move is legal
-        pass
+    def _get_own_king_pos(self, color):
+        # black
+        if (color):
+            return self.king_pos_black
+        # white
+        else:
+            return self.king_pos_white
 
-    def is_valid(self):
+    def _get_enemy_king_pos(self, color):
+        # black
+        if (color):
+            return self.king_pos_white
+        # white
+        else:
+            return self.king_pos_black
+
+    def _is_legal(self, from_idx, to_idx, color):
+        king_danger_direction = Chess._danger_direction(from_idx, self._get_own_king_pos(color))
+        # we found something
+        if (king_danger_direction):
+            # TODO: move in the same  direction backwards but only if the figure can move that way
+            return True
+        # end of the field
+        else:
+            return False
+
+    def _is_valid(self, from_idx, to_idx, color):
         # TODO: check if a move is valid
         pass
 
     @staticmethod
-    def danger_direction(king_idx, figure_idx):
+    def _danger_direction(king_idx, figure_idx):
         # king can not be at the same location as the figure
         if king_idx == figure_idx:
             return -2
@@ -182,7 +207,7 @@ class Chess:
             else:
                 return Direction.DOWN_RIGHT
 
-    def get_first_figure(self, direction, start):
+    def _get_first_figure(self, direction, start):
         current_index = start + direction.value
         # as long as we dont reach the end of the board
         while not current_index & 0x88:
@@ -194,7 +219,7 @@ class Chess:
         # end of the board has been reached
         return -1
 
-    def is_direction_free(self, direction, start, end, color):
+    def _is_direction_free(self, direction, start, end, color):
         current_index = start + direction.value
         # as long as we dont reach the desired position
         while end != current_index:

@@ -57,7 +57,7 @@ class Chess:
 
     def make_move(self, from_idx, to_idx, player):
         # save the current state of the board
-        self.temp = self.figures
+        self.temp = self.figures[:]
         # check if the move is valid
         if self._is_valid(from_idx, to_idx, player):
             self._make_temporal_move(from_idx, to_idx, player)
@@ -129,7 +129,7 @@ class Chess:
         pass
 
     def _roll_back(self):
-        self.figures = self.temp
+        self.figures = self.temp[:]
 
     def _get_own_king_pos(self, color):
         # black

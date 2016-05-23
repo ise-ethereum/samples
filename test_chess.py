@@ -24,7 +24,7 @@ class TestChess(TestCase):
     def test_danger_direction(self):
         test = Chess.Chess()
         test.print_game_indexes()
-        print(test._danger_direction(35, 19))
+        print(test._get_direction(35, 19))
 
     def test_danger_fields_normal(self):
         test = Chess.Chess()

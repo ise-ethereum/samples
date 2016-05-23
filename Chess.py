@@ -35,6 +35,7 @@ class Player(Enum):
     WHITE = 1
     BLACK = -1
 
+
 class Flags(Enum):
     KING_WHITE_POS = 8
     KING_BLACK_POS = 9
@@ -56,18 +57,19 @@ class Chess:
         self.figures[Flags.CURRENT_PLAYER] = Player.WHITE.value
 
     def make_move(self, from_idx, to_idx, player):
-        # save the current state of the board
+        # save the board
         self.temp = self.figures[:]
-        # check if the move is valid
-        if self._is_valid(from_idx, to_idx, player):
+        # get the figures at the beginning
+        to_fig = self.board[to_idx]
+        from_fig = self.board[from_idx]
+        if self._is_valid(from_idx, to_idx,to_idx,from_idx, player):
             self._make_temporal_move(from_idx, to_idx, player)
-        # else abort
         else:
-            return -1
-        #
+            self._roll_back()
+            raise Exception("The move is not valid")
         if not self._is_legal(from_idx, to_idx, player):
             self._roll_back()
-            return -1
+            raise Exception("The move is not legal")
         self._test_check(from_idx, to_idx, player)
 
     def print_board(self):
@@ -82,7 +84,7 @@ class Chess:
 
     def _danger_fields_normal(self, king_idx, figure_idx):
         # get the danger direction
-        direction = self._danger_direction(king_idx, figure_idx)
+        direction = self._get_direction(king_idx, figure_idx)
 
         # add the fields in that direction
         current_idx = king_idx + direction.value
@@ -93,7 +95,7 @@ class Chess:
         return danger_fields
 
     def _danger_fields_knight(self, king_idx, figure_idx):
-        direction = self._danger_direction(king_idx, figure_idx)
+        direction = self._get_direction(king_idx, figure_idx)
         # take care of the special knight case
         # take the first step for both directions
         current_idx_first = king_idx
@@ -132,23 +134,19 @@ class Chess:
         self.figures = self.temp[:]
 
     def _get_own_king_pos(self, color):
-        # black
-        if (color):
-            return self.figures[Flags.KING_BLACK_POS.value]
-        # white
-        else:
+        if color:
             return self.figures[Flags.KING_WHITE_POS.value]
+        else:
+            return self.figures[Flags.KING_BLACK_POS.value]
 
     def _get_enemy_king_pos(self, color):
-        # black
         if (color):
-            return self.figures[Flags.KING_WHITE_POS.value]
-        # white
-        else:
             return self.figures[Flags.KING_BLACK_POS.value]
+        else:
+            return self.figures[Flags.KING_WHITE_POS.value]
 
     def _is_legal(self, from_idx, to_idx, color):
-        king_danger_direction = Chess._danger_direction(from_idx, self._get_own_king_pos(color))
+        king_danger_direction = Chess._get_direction(from_idx, self._get_own_king_pos(color))
         # we found something
         if (king_danger_direction):
             # TODO: move in the same  direction backwards but only if the figure can move that way
@@ -157,35 +155,37 @@ class Chess:
         else:
             return False
 
-    def _is_valid(self, from_idx, to_idx, color):
-        # TODO: check if a move is valid
-        pass
+    def _is_valid(self, from_idx, to_idx,from_fig,to_fig, color):
+        # the starting point is not in the field
+        if from_idx & 0x88:
+            return False
+        # the end point is not in the field
+        if to_idx & 0x88:
+            return False
+        # we have to move something
+        if from_idx==to_idx:
+            return False
+        # there has to be a enemy figure or an empty field
+        if from_fig * to_fig<0:
+            return False
+        direction = self._get_direction(from_idx,to_idx)
+        # see if the figure has the capability to move there
+        if(self._can_move(from_idx,to_idx,from_fig,direction)):
+            # see if the way for the figure is free
+            if self._is_free(from_idx,direction,from_fig):
+                # TODO: special case pawn can not hit
+                return True
+            else:
+                return False
+        else:
+            return False
 
     @staticmethod
-    def _danger_direction(king_idx, figure_idx):
-        # king can not be at the same location as the figure
-        if king_idx == figure_idx:
-            return -2
-
-        # king index is outside the game
-        if king_idx & 0x88:
-            return -2
-
-        # figure index is outside the game
-        if figure_idx & 0x88:
-            return -2
-
-        # true : figure is left in the same line or above the king 0 figure is right in the same line or below the king
-        is_above_left = king_idx >= figure_idx
-
-        # true : figure is on the same line horizontal as the king
-        is_same_horizontal = abs(king_idx - figure_idx) < 8
-
-        # true : figure is on the same vertical line  as the king
-        is_same_vertical = king_idx % 8 == figure_idx % 8
-
-        # true : figure is on the left side else right side
-        is_left_side = king_idx % 8 > figure_idx % 8
+    def _get_direction(from_idx, to_idx):
+        is_above_left = from_idx >= to_idx
+        is_same_horizontal = abs(from_idx - to_idx) < 8
+        is_same_vertical = from_idx % 8 == to_idx % 8
+        is_left_side = from_idx % 8 > to_idx % 8
 
         if is_above_left:
             if is_same_vertical:
@@ -218,10 +218,10 @@ class Chess:
         # end of the board has been reached
         return -1
 
-    def _is_direction_free(self, direction, start, end, color):
-        current_index = start + direction.value
+    def _is_direction_free(self, direction, from_idx, to_idx, color):
+        current_index = from_idx + direction.value
         # as long as we dont reach the desired position
-        while end != current_index:
+        while to_idx != current_index:
             # we reached the end of the field
             if current_index & 0x88:
                 return -1
@@ -241,3 +241,9 @@ class Chess:
         # the field is a friend
         if is_enemy > 0:
             return -1
+
+    def _can_move(self, from_idx, to_idx, from_fig, direction):
+        pass
+
+    def _is_free(self, from_idx, direction, from_fig):
+        pass

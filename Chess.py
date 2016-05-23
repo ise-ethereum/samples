@@ -56,6 +56,8 @@ class Chess:
         self.figures[Flags.CURRENT_PLAYER] = Player.WHITE.value
 
     def make_move(self, from_idx, to_idx, player):
+        # save the current state of the board
+        self.temp = self.figures
         # check if the move is valid
         if self._is_valid(from_idx, to_idx, player):
             self._make_temporal_move(from_idx, to_idx, player)
@@ -119,26 +121,15 @@ class Chess:
         return danger_fields
 
     def _make_temporal_move(self, from_idx, to_idx, color):
-        # save the move idx for possible rollback
-        self.from_idx = from_idx
-        self.to_idx = to_idx
-        # save figures for possible rollback
-        self.from_figure = self.figures[from_idx]
-        self.to_figure = self.figures[to_idx]
-        # TODO: save special flags that might be changed
-        # make the move if its legal
         self.figures[to_idx] = self.figures[from_idx]
         self.figures[from_idx] = 0
 
     def _test_check(self, from_idx, to_idx, color):
-        # TODO: set the check flag if appropiate
+        # TODO: set the check flag if appropriate
         pass
 
     def _roll_back(self):
-        # TODO: reset special flags that might got changed
-        self.figures[self.from_idx] = self.from_figure
-        self.figures[self.to_idx] = self.to_figure
-        pass
+        self.figures = self.temp
 
     def _get_own_king_pos(self, color):
         # black

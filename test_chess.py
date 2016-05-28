@@ -40,12 +40,23 @@ class TestChess(TestCase):
             test.board[field] = -1
         test.print_game_indexes()
 
-    @unittest.skip
-    def test_basic_move_test(self):
+    def test_basic_move_king_valid(self):
         test = Chess.Chess()
-        test.make_move(3, 4, Chess.Player.BLACK)
+        self.assertTrue(test.make_move(4, 5, Chess.Player.BLACK))
+        test.print_board()
+
+    def test_basic_move_king_invalid(self):
+        test = Chess.Chess()
+        self.assertFalse(test.make_move(4,2,Chess.Player.BLACK))
         test.print_board()
         test.print_game_indexes()
+
+    def test_basic_move_king_own_figure(self):
+        test = Chess.Chess()
+        self.assertFalse(test.make_move(4,20,Chess.Player.BLACK))
+        test.print_board()
+        test.print_game_indexes()
+
 
     @unittest.skip
     def test_check(self):
@@ -63,6 +74,6 @@ class TestChess(TestCase):
 
     def test_is_direction_free(self):
         test = Chess.Chess()
-        print(test._is_direction_free(Chess.Direction.DOWN, 19, 115, Chess.Player.BLACK))
+        print(test._is_direction_free(Chess.Direction.DOWN, 19, 115))
         test.print_board()
         test.print_game_indexes()

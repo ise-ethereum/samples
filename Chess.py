@@ -44,7 +44,6 @@ class Player(Enum):
 
 
 class Flags(Enum):
-    # flags
     WHITE_KING_POS = 115 + 8
     BLACK_KING_POS = 3 + 8
     CURRENT_PLAYER = 48 + 8
@@ -63,17 +62,34 @@ class Chess:
         # the actual board containing all the figures and flags
         self.figures = [0 for _ in range(0, 128)]
         # test setup , later here should be the hole board set
+        # black
+        self.figures[0] = Piece.BLACK_ROOK.value
         self.figures[4] = Piece.BLACK_KING.value
-        self.figures[116] = Piece.WHITE_KING.value
+        self.figures[Flags.BLACK_KING_POS.value] = 4
+        self.figures[7] = Piece.BLACK_ROOK.value
         self.figures[20] = Piece.BLACK_BISHOP.value
-        self.figures[Flags.WHITE_KING_POS] = 116
-        self.figures[Flags.BLACK_KING_POS] = 4
-        self.figures[Flags.CURRENT_PLAYER] = Player.WHITE.value
+        self.figures[33] = Piece.BLACK_PAWN.value
+        self.figures[Flags.BLACK_EN_PASSANT.value] = 17
+        self.figures[55] = Piece.BLACK_BISHOP
+
+        self.figures[22] = Piece.WHITE_PAWN.value
+        self.figures[34] = Piece.WHITE_PAWN.value
+        self.figures[38] = Piece.WHITE_ROOK.value
+        self.figures[64] = Piece.WHITE_BISHOP.value
+        self.figures[68] = Piece.WHITE_KNIGHT.value
+        self.figures[96] = Piece.WHITE_KNIGHT.value
+        self.figures[112] = Piece.WHITE_ROOK.value
+        self.figures[116] = Piece.WHITE_KING.value
+        self.figures[Flags.WHITE_KING_POS.value] = 116
+        self.figures[118] = Piece.WHITE_ROOK.value
+        self.figures[119] = Piece.WHITE_QUEEN.value
+
+        self.figures[Flags.CURRENT_PLAYER.value] = Player.BLACK.value
 
     def make_move(self, from_idx, to_idx, player):
         # get the figures at the beginning
-        to_fig = self.board[to_idx]
-        from_fig = self.board[from_idx]
+        to_fig = self.figures[to_idx]
+        from_fig = self.figures[from_idx]
 
         # sanity check about the move
         if not self._sanity_checks(from_idx, to_idx, from_fig, to_fig, player):
@@ -81,15 +97,16 @@ class Chess:
         # save the board
         self.temp = self.figures[:]
 
-        if self._is_valid(from_idx, to_idx, to_idx, from_idx, player):
+        if self._is_valid(from_idx, to_idx, from_fig, to_fig, player):
             self._make_temporal_move(from_idx, to_idx, player)
         else:
             self._roll_back()
-            raise Exception("The move is not valid")
-        if not self._is_legal(from_idx, to_idx, player):
+            return False
+        if not self._is_legal(from_idx, to_idx,from_fig,to_fig, player):
             self._roll_back()
-            raise Exception("The move is not legal")
+            return False
         self._test_check(from_idx, to_idx, player)
+        return True
 
     def print_board(self):
         print(np.array(self.figures).reshape(8, 16)[:, :8])
@@ -164,7 +181,10 @@ class Chess:
         else:
             return self.figures[Flags.WHITE_KING_POS.value]
 
-    def _is_legal(self, from_idx, to_idx, color):
+    def _is_legal(self, from_idx, to_idx,from_fig,to_fig, color):
+        # the king gets already checked when he moves
+        if(abs(from_fig)==Piece.BLACK_KING):
+            return True
         king_danger_direction = Chess._get_direction(from_idx, self._get_own_king_pos(color))
         # we found something
         if king_danger_direction:
@@ -179,28 +199,28 @@ class Chess:
         # see if the figure has the capability to move there
         if self._is_move_possible(from_idx, to_idx, from_fig, direction):
             # see if the way for the figure is free
-            if abs(from_fig.value) == Piece.BLACK_KNIGHT:
+            if abs(from_fig) == Piece.BLACK_KNIGHT.value:
                 return True
             if self._is_direction_free(direction, from_idx, to_idx):
-                if from_fig.value == Piece.BLACK_PAWN:
+                if from_fig == Piece.BLACK_PAWN.value:
                     if direction.is_diagonal():
                         temp = to_fig.value * from_fig.value
                         if to_idx % 16 == 2:
-                            if Flags.WHITE_EN_PASSANT == to_idx:
+                            if Flags.WHITE_EN_PASSANT.value == to_idx:
                                 return True
                         if temp > 0:
                             return True
                         return False
-                if from_fig.value == Piece.WHITE_PAWN:
+                if from_fig == Piece.WHITE_PAWN.value:
                     if direction.is_diagonal():
                         temp = to_fig.value * from_fig.value
                         if to_idx % 16 == 5:
-                            if Flags.BLACK_EN_PASSANT == to_idx:
+                            if Flags.BLACK_EN_PASSANT.value == to_idx:
                                 return True
                         if temp > 0:
                             return True
                         return False
-                if abs(from_fig.value) == Piece.BLACK_KING:
+                if abs(from_fig) == Piece.BLACK_KING.value:
                     current = from_idx
                     while True:
                         if self.is_check(current, to_fig):
@@ -253,7 +273,7 @@ class Chess:
         # end of the board has been reached
         return -1
 
-    def _is_direction_free(self, direction, from_idx, to_idx, color):
+    def _is_direction_free(self, direction, from_idx, to_idx):
         current_index = from_idx + direction.value
         # as long as we do not reach the desired position
         while to_idx != current_index:
@@ -396,8 +416,9 @@ class Chess:
                 return False
 
 
-    def is_check(current_idx, to_fig):
+    def is_check(self,current_idx, to_fig):
         # TODO: if the current field is check
+        return False
         pass
 
 
@@ -412,5 +433,6 @@ class Chess:
         if from_idx == to_idx:
             return False
         # there has to be a enemy figure or an empty field
-        if from_fig * to_fig < 0:
+        if from_fig * to_fig > 0:
             return False
+        return True

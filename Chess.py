@@ -67,10 +67,11 @@ class Chess:
         self.figures[4] = Piece.BLACK_KING.value
         self.figures[Flags.BLACK_KING_POS.value] = 4
         self.figures[7] = Piece.BLACK_ROOK.value
+        self.figures[16] = Piece.BLACK_PAWN.value
         self.figures[20] = Piece.BLACK_BISHOP.value
         self.figures[33] = Piece.BLACK_PAWN.value
         self.figures[Flags.BLACK_EN_PASSANT.value] = 17
-        self.figures[55] = Piece.BLACK_BISHOP
+        self.figures[55] = Piece.BLACK_BISHOP.value
 
         self.figures[22] = Piece.WHITE_PAWN.value
         self.figures[34] = Piece.WHITE_PAWN.value
@@ -78,6 +79,7 @@ class Chess:
         self.figures[64] = Piece.WHITE_BISHOP.value
         self.figures[68] = Piece.WHITE_KNIGHT.value
         self.figures[96] = Piece.WHITE_KNIGHT.value
+        self.figures[97] = Piece.WHITE_PAWN.value
         self.figures[112] = Piece.WHITE_ROOK.value
         self.figures[116] = Piece.WHITE_KING.value
         self.figures[Flags.WHITE_KING_POS.value] = 116
@@ -205,19 +207,19 @@ class Chess:
                 if from_fig == Piece.BLACK_PAWN.value:
                     if direction.is_diagonal():
                         temp = to_fig.value * from_fig.value
-                        if to_idx % 16 == 2:
+                        if to_idx % 16 == 5:
                             if Flags.WHITE_EN_PASSANT.value == to_idx:
                                 return True
-                        if temp > 0:
+                        if temp < 0:
                             return True
                         return False
                 if from_fig == Piece.WHITE_PAWN.value:
                     if direction.is_diagonal():
-                        temp = to_fig.value * from_fig.value
-                        if to_idx % 16 == 5:
+                        temp = to_fig * from_fig
+                        if to_idx % 16 == 2:
                             if Flags.BLACK_EN_PASSANT.value == to_idx:
                                 return True
-                        if temp > 0:
+                        if temp < 0:
                             return True
                         return False
                 if abs(from_fig) == Piece.BLACK_KING.value:
@@ -315,7 +317,7 @@ class Chess:
             return False
 
         # Bishops
-        if from_fig == abs(Piece.BLACK_BISHOP.value):
+        if abs(from_fig) == Piece.BLACK_BISHOP.value:
             if direction.is_diagonal():
                 temp = from_idx
                 while not temp & 0x88:
@@ -324,7 +326,7 @@ class Chess:
                     temp += direction.value
             return False
         # Qeens
-        if from_fig == abs(Piece.BLACK_QUEEN.value):
+        if abs(from_fig) == Piece.BLACK_QUEEN.value:
             temp = from_idx
             while not temp & 0x88:
                 if temp == to_idx:
@@ -332,7 +334,7 @@ class Chess:
                 temp += direction.value
             return False
         # Rooks
-        if from_fig == abs(Piece.BLACK_ROOK.value):
+        if abs(from_fig) == Piece.BLACK_ROOK.value:
             if not direction.is_diagonal():
                 temp = from_idx
                 while not temp & 0x88:
@@ -341,12 +343,14 @@ class Chess:
                     temp += direction.value
             return False
         # pawns
-        if from_fig == Piece.BLACK_PAWN:
+        if from_fig == Piece.BLACK_PAWN.value:
             # Pawn has to move in negative direction
-            if direction.value > 0:
+            if direction.value < 0:
                 return False
             # forward move
             if not direction.is_diagonal():
+                if abs(direction.value)<2:
+                    return False
                 # simple move
                 if from_idx + direction.value == to_idx:
                     return True
@@ -363,12 +367,14 @@ class Chess:
                 else:
                     return False
 
-        if from_fig == Piece.WHITE_PAWN:
-            # Pawn has to move in negative direction
-            if direction.value < 0:
+        if from_fig == Piece.WHITE_PAWN.value:
+            # Pawn has to move in positive direction
+            if direction.value > 0:
                 return False
             # forward move
             if not direction.is_diagonal():
+                if abs(direction.value)<2:
+                    return False
                 # simple move
                 if from_idx + direction.value == to_idx:
                     return True
@@ -385,28 +391,28 @@ class Chess:
                 else:
                     return False
         # knights:
-        if from_fig == abs(Piece.BLACK_KNIGHT):
+        if abs(from_fig) == Piece.BLACK_KNIGHT.value:
             if direction.is_diagonal():
                 base = from_idx + direction.value
-                if direction == direction.DOWN_LEFT:
+                if direction == Direction.DOWN_LEFT:
                     if base + Direction.LEFT.value == to_idx:
                         return True
                     if base + Direction.DOWN.value == to_idx:
                         return True
                     return False
-                if direction == direction.DOWN_RIGHT:
+                if direction == Direction.DOWN_RIGHT:
                     if base + Direction.RIGHT.value == to_idx:
                         return True
                     if base + Direction.DOWN.value == to_idx:
                         return True
                     return False
-                if direction == direction.UP_LEFT:
+                if direction == Direction.UP_LEFT:
                     if base + Direction.LEFT.value == to_idx:
                         return True
                     if base + Direction.UP.value == to_idx:
                         return True
                     return False
-                if direction == direction.UP_RIGHT:
+                if direction == Direction.UP_RIGHT:
                     if base + Direction.RIGHT.value == to_idx:
                         return True
                     if base + Direction.UP.value == to_idx:
@@ -434,5 +440,11 @@ class Chess:
             return False
         # there has to be a enemy figure or an empty field
         if from_fig * to_fig > 0:
+            return False
+        # check if the player is the owner of the figure, also tests for empty figure
+        if self.figures[Flags.CURRENT_PLAYER.value]*from_fig>0:
+            return False
+        # check if its the players turn
+        if self.figures[Flags.CURRENT_PLAYER.value] != player.value:
             return False
         return True

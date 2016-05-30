@@ -21,7 +21,6 @@ class Direction(Enum):
             return False
         return True
 
-
 class Piece(Enum):
     WHITE_KING = -6
     WHITE_QUEEN = -5
@@ -37,11 +36,9 @@ class Piece(Enum):
     BLACK_KNIGHT = 2
     BLACK_PAWN = 1
 
-
 class Player(Enum):
     WHITE = 1
     BLACK = -1
-
 
 class Flags(Enum):
     WHITE_KING_POS = 115 + 8
@@ -53,7 +50,8 @@ class Flags(Enum):
     BLACK_RIGHT_CASTLING = 55 + 8
     BLACK_EN_PASSANT = 53+8
     WHITE_EN_PASSANT = 69+8
-
+    BLACK_CHECK_FLAG = 52+8
+    WHITE_CHECK_FLAG = 68+8
 
 class Chess:
     def __init__(self):
@@ -232,8 +230,26 @@ class Chess:
                 self.figures[Flags.WHITE_RIGHT_CASTLING.value] = -1
 
     def _test_check(self, from_idx, to_idx, color):
-        # TODO: set the check flag if appropriate
-        pass
+        check_counter = 0
+        for direction in Direction:
+            # getting the first figure in that direction
+            first_figure_idx = self._get_first_figure(direction,from_idx)
+            # we found something
+            if first_figure_idx:
+                first_figure = self.figures[first_figure_idx]
+                #its an enemy
+                if(first_figure*color.value>0):
+                    #see if the figure can move on the field of the king
+                    king_figure = Piece(Piece.BLACK_KING.value*color.value)
+                    direction = Direction(-1*direction.value)
+                    if self._is_move_possible(first_figure_idx,from_idx,first_figure,king_figure.value,direction):
+                        check_counter+=1
+
+        if(color==1):
+            self.figures[Flags.WHITE_CHECK_FLAG.value] = check_counter
+        if(color==-1):
+            self.figures[Flags.BLACK_CHECK_FLAG.value] = check_counter
+        return check_counter
 
     def _roll_back(self):
         self.figures = self.temp[:]
@@ -271,7 +287,6 @@ class Chess:
                     return False
         return True
 
-
     def _is_valid(self, from_idx, to_idx, from_fig, to_fig, color):
         direction = self._get_direction(from_idx, to_idx)
         # see if the figure has the capability to move there
@@ -283,9 +298,9 @@ class Chess:
             if self._is_direction_free(direction, from_idx, to_idx):
                 # special case king he needs to check on every field if he is in check
                 if abs(from_fig) == Piece.BLACK_KING.value:
-                    current = from_idx
+                    current = from_idx+ direction.value
                     while True:
-                        if self.is_check(current, from_fig):
+                        if self.is_check(current, color):
                             return False
                         if current == to_idx:
                             return True
@@ -500,10 +515,21 @@ class Chess:
             else:
                 return False
 
-    def is_check(self, current_idx, from_fig):
-        # TODO: if the current field is check
+    def is_check(self, current_idx, color):
+        for direction in Direction:
+            # getting the first figure in that direction
+            first_figure_idx = self._get_first_figure(direction,current_idx)
+            # we found something
+            if first_figure_idx>0:
+                first_figure = self.figures[first_figure_idx]
+                #its an enemy
+                if(first_figure*color.value>0):
+                    #see if the figure can move on the field of the king
+                    king_figure = Piece(Piece.BLACK_KING.value*color.value)
+                    direction = Direction(-1*direction.value)
+                    if self._is_move_possible(first_figure_idx,current_idx,first_figure,king_figure.value,direction):
+                        return True
         return False
-        pass
 
     def _sanity_checks(self, from_idx, to_idx, from_fig, to_fig, player):
         # the starting point is not in the field

@@ -231,7 +231,6 @@ class Chess:
             if from_idx == 119:
                 self.figures[Flags.WHITE_RIGHT_CASTLING.value] = -1
 
-
     def _test_check(self, from_idx, to_idx, color):
         # TODO: set the check flag if appropriate
         pass
@@ -255,27 +254,37 @@ class Chess:
         # the king gets already checked when he moves
         if abs(from_fig) == Piece.BLACK_KING:
             return True
-        king_danger_direction = Chess._get_direction(from_idx, self._get_own_king_pos(color))
+        # direction we have to look out
+        king_idx = self._get_own_king_pos(color)
+        king_danger_direction = Chess._get_direction(king_idx,from_idx)
+        # getting the first figure in that direction
+        first_figure_idx = self._get_first_figure(king_danger_direction,king_idx)
         # we found something
-        if king_danger_direction:
-            # TODO: move in the same  direction backwards but only if the figure can move that way
-            return True
-        # end of the field
-        else:
-            return False
+        if first_figure_idx:
+            first_figure = self.figures[first_figure_idx]
+            #its an enemy
+            if(first_figure*color<0):
+                #see if the figure can move on the field of the king
+                if(self._is_move_possible(first_figure_idx,king_idx,first_figure,Piece.BLACK_KNIGHT.value*color,-king_danger_direction)):
+                    return False
+
+
+
 
     def _is_valid(self, from_idx, to_idx, from_fig, to_fig, color):
         direction = self._get_direction(from_idx, to_idx)
         # see if the figure has the capability to move there
         if self._is_move_possible(from_idx, to_idx, from_fig, to_fig, direction):
-            # see if the way for the figure is free
+            # knight dosent need a free way
             if abs(from_fig) == Piece.BLACK_KNIGHT.value:
                 return True
+            # see if the way for the figure is free
             if self._is_direction_free(direction, from_idx, to_idx):
+                # special case king he needs to check on every field if he is in check
                 if abs(from_fig) == Piece.BLACK_KING.value:
                     current = from_idx
                     while True:
-                        if self.is_check(current, to_fig):
+                        if self.is_check(current, from_fig):
                             return False
                         if current == to_idx:
                             return True
@@ -344,13 +353,15 @@ class Chess:
             if from_idx + direction.value == to_idx:
                 return True
             else:
-                if (4 == from_idx):
+                if 4 == from_idx:
                     if to_idx == 1:
                         if self.figures[Flags.BLACK_LEFT_CASTLING.value]>=0:
-                            return True
+                            if to_fig==0:
+                                return True
                     if to_idx == 6:
                         if self.figures[Flags.BLACK_RIGHT_CASTLING.value]>=0:
-                            return True
+                            if to_fig==0:
+                                return True
             return False
 
         if from_fig == Piece.WHITE_KING.value:
@@ -360,10 +371,12 @@ class Chess:
                 if from_idx == 116:
                     if to_idx == 113:
                         if self.figures[Flags.WHITE_LEFT_CASTLING.value]>=0:
-                            return True
+                            if to_fig==0:
+                                return True
                     if to_idx == 118:
                         if self.figures[Flags.WHITE_RIGHT_CASTLING.value]>=0:
-                            return True
+                            if to_fig==0:
+                                return True
             return False
 
         # Bishops
@@ -486,7 +499,7 @@ class Chess:
             else:
                 return False
 
-    def is_check(self, current_idx, to_fig):
+    def is_check(self, current_idx, from_fig):
         # TODO: if the current field is check
         return False
         pass

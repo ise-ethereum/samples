@@ -51,8 +51,8 @@ class Flags(Enum):
     WHITE_RIGHT_CASTLING = 71 + 8
     BLACK_LEFT_CASTLING = 54 + 8
     BLACK_RIGHT_CASTLING = 55 + 8
-    BLACK_EN_PASSANT = 53
-    WHITE_EN_PASSANT = 69
+    BLACK_EN_PASSANT = 53+8
+    WHITE_EN_PASSANT = 69+8
 
 
 class Chess:
@@ -346,10 +346,10 @@ class Chess:
             else:
                 if (4 == from_idx):
                     if to_idx == 1:
-                        if Flags.BLACK_LEFT_CASTLING:
+                        if self.figures[Flags.BLACK_LEFT_CASTLING.value]>=0:
                             return True
                     if to_idx == 6:
-                        if Flags.BLACK_RIGHT_CASTLING:
+                        if self.figures[Flags.BLACK_RIGHT_CASTLING.value]>=0:
                             return True
             return False
 
@@ -359,10 +359,10 @@ class Chess:
             else:
                 if from_idx == 116:
                     if to_idx == 113:
-                        if Flags.WHITE_LEFT_CASTLING:
+                        if self.figures[Flags.WHITE_LEFT_CASTLING.value]>=0:
                             return True
                     if to_idx == 118:
-                        if Flags.WHITE_RIGHT_CASTLING:
+                        if self.figures[Flags.WHITE_RIGHT_CASTLING.value]>=0:
                             return True
             return False
 

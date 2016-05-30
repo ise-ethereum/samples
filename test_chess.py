@@ -57,9 +57,19 @@ class TestChess(TestCase):
         #castling right
         self.setUp()
         self.assertTrue(self.test_black.make_move(4,6,Chess.Player.BLACK))
-    def test_basic_move_king_too_long(self):
+    def test_move_king_invalid(self):
+        # too long move
         self.assertFalse(self.test_black.make_move(4,2,Chess.Player.BLACK))
-
+        # move the king
+        self.assertTrue(self.test_black.make_move(4,5,Chess.Player.BLACK))
+        # let the white player do something
+        self.assertTrue(self.test_black.make_move(119,103,Chess.Player.WHITE))
+        # move it back
+        self.assertTrue(self.test_black.make_move(5,4,Chess.Player.BLACK))
+        # white has to do something again
+        self.assertTrue(self.test_black.make_move(103,119,Chess.Player.WHITE))
+        # black player atempts castling
+        self.assertFalse(self.test_black.make_move(4,1,Chess.Player.BLACK))
 #test for bishop
     def test_basic_move_bishop_valid(self):
         self.assertTrue(self.test_black.make_move(20,50,Chess.Player.BLACK))

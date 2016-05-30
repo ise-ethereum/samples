@@ -49,20 +49,22 @@ class TestChess(TestCase):
         self.assertFalse(self.test_black.make_move(115,116,Chess.Player.BLACK))
 
 # test for the king
-    def test_basic_move_king(self):
+    def test_move_king_valid(self):
         self.assertTrue(self.test_black.make_move(4, 5, Chess.Player.BLACK))
-        self.test_black.print_board()
-
+        self.setUp()
+        #castling left
+        self.assertTrue(self.test_black.make_move(4,1,Chess.Player.BLACK))
+        #castling right
+        self.setUp()
+        self.assertTrue(self.test_black.make_move(4,6,Chess.Player.BLACK))
     def test_basic_move_king_too_long(self):
         self.assertFalse(self.test_black.make_move(4,2,Chess.Player.BLACK))
-        self.test_black.print_board()
-        self.test_black.print_game_indexes()
 
 #test for bishop
     def test_basic_move_bishop_valid(self):
         self.assertTrue(self.test_black.make_move(20,50,Chess.Player.BLACK))
 
-    def test_basic_move_bishop_move_wrong(self):
+    def test_move_bishop_invalid(self):
         # straight move
         self.assertFalse(self.test_black.make_move(20,21,Chess.Player.BLACK))
         # simply wrong move
@@ -73,9 +75,18 @@ class TestChess(TestCase):
         # normal
         self.assertTrue(self.test_black.make_move(33,49,Chess.Player.BLACK))
         # double move
+        self.setUp()
         self.assertTrue(self.test_black.make_move(16,48,Chess.Player.BLACK))
         # hitting something
+        self.setUp()
         self.assertTrue(self.test_white.make_move(22,7,Chess.Player.WHITE))
+
+    def test_temp(self):
+        # en passant hit
+        # Black makes double jump
+        self.assertTrue(self.test_black.make_move(16,48,Chess.Player.BLACK))
+        # white kills it
+        self.assertTrue(self.test_black.make_move(49,32,Chess.Player.WHITE))
 
     def test_move_pawn_invalid(self):
         # trying to hit empty field
@@ -126,7 +137,7 @@ class TestChess(TestCase):
         # diagonal hitting nothing
         self.assertTrue(self.test_white.make_move(119,85,Chess.Player.WHITE))
 
-    def test_move_qeen_invalid(self):
+    def test_move_queen_invalid(self):
         # moving over own figure
         self.assertFalse(self.test_white.make_move(119,51,Chess.Player.WHITE))
         #moving over enemy figure

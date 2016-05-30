@@ -263,12 +263,13 @@ class Chess:
         if first_figure_idx:
             first_figure = self.figures[first_figure_idx]
             #its an enemy
-            if(first_figure*color<0):
+            if(first_figure*color.value>0):
                 #see if the figure can move on the field of the king
-                if(self._is_move_possible(first_figure_idx,king_idx,first_figure,Piece.BLACK_KNIGHT.value*color,-king_danger_direction)):
+                king_figure = Piece(Piece.BLACK_KING.value*color.value)
+                direction = Direction(-1*king_danger_direction.value)
+                if self._is_move_possible(first_figure_idx,king_idx,first_figure,king_figure,direction):
                     return False
-
-
+        return True
 
 
     def _is_valid(self, from_idx, to_idx, from_fig, to_fig, color):

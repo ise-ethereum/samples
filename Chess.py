@@ -370,34 +370,25 @@ class Chess:
 
     def _is_move_possible(self, from_idx, to_idx, from_fig, to_fig, direction):
         # Kings
-        if from_fig == Piece.BLACK_KING.value:
+        if abs(from_fig) == Piece.BLACK_KING.value:
             if from_idx + direction.value == to_idx:
                 return True
-            else:
-                if 4 == from_idx:
+            elif from_fig == Piece.BLACK_KING.value:
+                if 4 == from_idx and to_fig == 0:
                     if to_idx == 1:
-                        if self.figures[Flags.BLACK_LEFT_CASTLING.value]>=0:
-                            if to_fig==0:
-                                return True
+                        if self.figures[Flags.BLACK_LEFT_CASTLING.value] >= 0:
+                            return True
                     if to_idx == 6:
-                        if self.figures[Flags.BLACK_RIGHT_CASTLING.value]>=0:
-                            if to_fig==0:
-                                return True
-            return False
-
-        if from_fig == Piece.WHITE_KING.value:
-            if from_idx + direction.value == to_idx:
-                return True
-            else:
-                if from_idx == 116:
+                        if self.figures[Flags.BLACK_RIGHT_CASTLING.value] >= 0:
+                            return True
+            elif from_fig == Piece.WHITE_KING.value:
+                if from_idx == 116 and to_fig == 0:
                     if to_idx == 113:
-                        if self.figures[Flags.WHITE_LEFT_CASTLING.value]>=0:
-                            if to_fig==0:
-                                return True
+                        if self.figures[Flags.WHITE_LEFT_CASTLING.value] >= 0:
+                            return True
                     if to_idx == 118:
-                        if self.figures[Flags.WHITE_RIGHT_CASTLING.value]>=0:
-                            if to_fig==0:
-                                return True
+                        if self.figures[Flags.WHITE_RIGHT_CASTLING.value] >= 0:
+                            return True
             return False
 
         # Bishops

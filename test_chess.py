@@ -174,3 +174,6 @@ class TestChess(TestCase):
         print(self.test_black._is_direction_free(Chess.Direction.DOWN, 19, 115))
         self.test_black.print_board()
         self.test_black.print_game_indexes()
+
+if __name__ == '__main__':
+    unittest.main()

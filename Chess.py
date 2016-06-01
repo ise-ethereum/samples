@@ -522,6 +522,7 @@ class Chess:
             # getting the first figure in that direction
             first_figure_idx = self._get_first_figure(direction,current_idx)
             # we found something
+            
             if first_figure_idx>0:
                 first_figure = self.figures[first_figure_idx]
                 #its an enemy

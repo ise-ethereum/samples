@@ -53,6 +53,9 @@ class Flags(Enum):
     BLACK_CHECK_FLAG = 52+8
     WHITE_CHECK_FLAG = 68+8
 
+def rank(index):
+    return int(index/16)
+
 class Chess:
     def __init__(self):
         # not needed helper board to better visualize the board indexes
@@ -300,7 +303,7 @@ class Chess:
             if self._is_direction_free(direction, from_idx, to_idx):
                 # special case king he needs to check on every field if he is in check
                 if abs(from_fig) == Piece.BLACK_KING.value:
-                    current = from_idx+ direction.value
+                    current = from_idx + direction.value
                     while True:
                         if self.is_check(current, color):
                             return False
@@ -438,7 +441,7 @@ class Chess:
                 # double move
                 else:
                     if from_idx + direction.value + direction.value == to_idx:
-                        if 1 == int(from_idx / 16):
+                        if 1 == rank(from_idx):
                             return True
                 return False
             # sidewards move
@@ -469,7 +472,7 @@ class Chess:
                 # double move
                 else:
                     if from_idx + direction.value + direction.value == to_idx:
-                        if int(from_idx / 16) == 6:
+                        if rank(from_idx) == 6:
                             return True
                 return False
             # sidewards move

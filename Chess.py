@@ -86,7 +86,7 @@ class Chess:
 
         self.figures[Flags.CURRENT_PLAYER.value] = Player.BLACK.value
 
-    def make_move(self, from_idx, to_idx, player):
+    def move(self, from_idx, to_idx, player):
         # get the figures at the beginning
         to_fig = self.figures[to_idx]
         from_fig = self.figures[from_idx]
@@ -169,6 +169,7 @@ class Chess:
         # castling
         # it already passed valid we just need to move the rook
         if from_fig == Piece.BLACK_KING.value:
+            self.figures[Flags.BLACK_KING_POS.value] = to_idx
             if from_idx == 4 and to_idx == 1:
                 self.figures[0] = 0
                 self.figures[2] = Piece.BLACK_ROOK.value
@@ -176,6 +177,7 @@ class Chess:
                 self.figures[7] = 0
                 self.figures[5] = Piece.BLACK_ROOK.value
         if from_fig == Piece.WHITE_KING.value:
+            self.figures[Flags.WHITE_KING_POS.value] = to_idx
             if from_idx == 116 and to_idx == 112:
                 self.figures[112] = 0
                 self.figures[114] = Piece.WHITE_ROOK.value

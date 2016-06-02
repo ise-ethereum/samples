@@ -238,21 +238,21 @@ class Chess:
         check_counter = 0
         for direction in Direction:
             # getting the first figure in that direction
-            first_figure_idx = self._get_first_figure(direction,from_idx)
+            first_figure_idx = self._get_first_figure(direction, from_idx)
             # we found something
             if first_figure_idx:
                 first_figure = self.figures[first_figure_idx]
                 #its an enemy
-                if(first_figure*color.value>0):
+                if first_figure*color.value > 0:
                     #see if the figure can move on the field of the king
                     king_figure = Piece(Piece.BLACK_KING.value*color.value)
                     direction = Direction(-1*direction.value)
-                    if self._is_move_possible(first_figure_idx,from_idx,first_figure,king_figure.value,direction):
-                        check_counter+=1
+                    if self._is_move_possible(first_figure_idx, from_idx, first_figure, king_figure.value, direction):
+                        check_counter += 1
 
-        if(color==1):
+        if color == 1:
             self.figures[Flags.WHITE_CHECK_FLAG.value] = check_counter
-        if(color==-1):
+        if color == -1:
             self.figures[Flags.BLACK_CHECK_FLAG.value] = check_counter
         return check_counter
 
@@ -288,7 +288,7 @@ class Chess:
                 #see if the figure can move on the field of the king
                 king_figure = Piece(Piece.BLACK_KING.value*color.value)
                 direction = Direction(-1*king_danger_direction.value)
-                if self._is_move_possible(first_figure_idx,king_idx,first_figure,king_figure,direction):
+                if self._is_move_possible(first_figure_idx, king_idx, first_figure, king_figure, direction):
                     return False
         return True
 
@@ -369,89 +369,49 @@ class Chess:
         return True
 
     def _is_move_possible(self, from_idx, to_idx, from_fig, to_fig, direction):
+        """
+        Checks that piece is technically able to make a certain move, without
+        considering pieces in between or other legality
+        """
         # Kings
         if abs(from_fig) == Piece.BLACK_KING.value:
             if from_idx + direction.value == to_idx:
                 return True
-            elif from_fig == Piece.BLACK_KING.value:
+            if from_fig == Piece.BLACK_KING.value:
                 if 4 == from_idx and to_fig == 0:
-                    if to_idx == 1:
-                        if self.figures[Flags.BLACK_LEFT_CASTLING.value] >= 0:
+                    if to_idx == 1 and self.figures[Flags.BLACK_LEFT_CASTLING.value] >= 0:
                             return True
-                    if to_idx == 6:
-                        if self.figures[Flags.BLACK_RIGHT_CASTLING.value] >= 0:
+                    if to_idx == 6 and self.figures[Flags.BLACK_RIGHT_CASTLING.value] >= 0:
                             return True
-            elif from_fig == Piece.WHITE_KING.value:
+            if from_fig == Piece.WHITE_KING.value:
                 if from_idx == 116 and to_fig == 0:
-                    if to_idx == 113:
-                        if self.figures[Flags.WHITE_LEFT_CASTLING.value] >= 0:
+                    if to_idx == 113 and self.figures[Flags.WHITE_LEFT_CASTLING.value] >= 0:
                             return True
-                    if to_idx == 118:
-                        if self.figures[Flags.WHITE_RIGHT_CASTLING.value] >= 0:
+                    if to_idx == 118 and self.figures[Flags.WHITE_RIGHT_CASTLING.value] >= 0:
                             return True
             return False
 
-        # Bishops
-        if abs(from_fig) == Piece.BLACK_BISHOP.value:
-            if direction.is_diagonal():
-                temp = from_idx
-                while not temp & 0x88:
-                    if temp == to_idx:
-                        return True
-                    temp += direction.value
-            return False
-        # Qeens
-        if abs(from_fig) == Piece.BLACK_QUEEN.value:
+        # Bishops, Queens, Rooks
+        if (abs(from_fig) == Piece.BLACK_BISHOP.value or
+                abs(from_fig) == Piece.BLACK_QUEEN.value or
+                abs(from_fig) == Piece.BLACK_ROOK.value):
+            if abs(from_fig) == Piece.BLACK_BISHOP.value and not direction.is_diagonal():
+                return False
+            if abs(from_fig) == Piece.BLACK_ROOK.value and direction.is_diagonal():
+                return False
+            # Traverse all fields in direction
             temp = from_idx
             while not temp & 0x88:
                 if temp == to_idx:
                     return True
                 temp += direction.value
             return False
-        # Rooks
-        if abs(from_fig) == Piece.BLACK_ROOK.value:
-            if not direction.is_diagonal():
-                temp = from_idx
-                while not temp & 0x88:
-                    if temp == to_idx:
-                        return True
-                    temp += direction.value
-            return False
-        # pawns
-        if from_fig == Piece.BLACK_PAWN.value:
-            # Pawn has to move in negative direction
-            if direction.value < 0:
-                return False
-            # forward move
-            if not direction.is_diagonal():
-                if abs(direction.value) < 2:
-                    return False
-                # simple move
-                if from_idx + direction.value == to_idx:
-                    return True
-                # double move
-                else:
-                    if from_idx + direction.value + direction.value == to_idx:
-                        if 1 == rank(from_idx):
-                            return True
-                return False
-            # sidewards move
-            else:
-                if from_idx + direction.value == to_idx:
-                    temp = to_fig * from_fig
-                    # if empty the en passant flag needs to be set
-                    if temp == 0:
-                        if self.figures[Flags.WHITE_EN_PASSANT.value] == to_idx:
-                            return True
-                        else:
-                            return False
-                    return True
-                else:
-                    return False
 
-        if from_fig == Piece.WHITE_PAWN.value:
-            # Pawn has to move in positive direction
-            if direction.value > 0:
+        # Pawns
+        if abs(from_fig) == Piece.BLACK_PAWN.value:
+            # Black can only move in positive, White negative direction
+            if (from_fig == Piece.BLACK_PAWN.value and direction.value < 0 or
+                    from_fig == Piece.WHITE_PAWN.value and direction.value > 0):
                 return False
             # forward move
             if not direction.is_diagonal():
@@ -461,55 +421,33 @@ class Chess:
                 if from_idx + direction.value == to_idx:
                     return True
                 # double move
-                else:
-                    if from_idx + direction.value + direction.value == to_idx:
-                        if rank(from_idx) == 6:
-                            return True
+                if from_idx + direction.value + direction.value == to_idx:
+                    # Can only do double move starting form specific ranks
+                    if 1 == rank(from_idx) or rank(from_idx) == 6:
+                        return True
                 return False
-            # sidewards move
+            # diagonal move
             else:
-                # sidewards need to be just one step
                 if from_idx + direction.value == to_idx:
-                    temp = to_fig * from_fig
-                    # if empty the en passant flag needs to be set
-                    if temp == 0:
-                        if self.figures[Flags.BLACK_EN_PASSANT.value] == to_idx:
+                    # if empty, the en passant flag needs to be set
+                    if to_fig * from_fig == 0:
+                        if from_fig == Piece.BLACK_PAWN.value and self.figures[Flags.WHITE_EN_PASSANT.value] == to_idx:
+                            return True
+                        elif from_fig == Piece.WHITE_PAWN.value and self.figures[Flags.BLACK_EN_PASSANT.value] == to_idx:
                             return True
                         else:
                             return False
+                    # If not empty
                     return True
-                else:
-                    return False
-        # knights:
-        if abs(from_fig) == Piece.BLACK_KNIGHT.value:
-            if direction.is_diagonal():
-                base = from_idx + direction.value
-                if direction == Direction.DOWN_LEFT:
-                    if base + Direction.LEFT.value == to_idx:
-                        return True
-                    if base + Direction.DOWN.value == to_idx:
-                        return True
-                    return False
-                if direction == Direction.DOWN_RIGHT:
-                    if base + Direction.RIGHT.value == to_idx:
-                        return True
-                    if base + Direction.DOWN.value == to_idx:
-                        return True
-                    return False
-                if direction == Direction.UP_LEFT:
-                    if base + Direction.LEFT.value == to_idx:
-                        return True
-                    if base + Direction.UP.value == to_idx:
-                        return True
-                    return False
-                if direction == Direction.UP_RIGHT:
-                    if base + Direction.RIGHT.value == to_idx:
-                        return True
-                    if base + Direction.UP.value == to_idx:
-                        return True
-                    return False
-            else:
                 return False
+
+        # Knights
+        knight_moves = [-33, -31, -18, -14, 14, 18, 31, 33]
+        if abs(from_fig) == Piece.BLACK_KNIGHT.value:
+            for move in knight_moves:
+                if from_idx + move == to_idx:
+                    return True
+            return False
 
     def is_check(self, current_idx, color):
         for direction in Direction:

@@ -23,3 +23,13 @@ print('Direction:\n%s\n%s' % enum_to_bytes(Direction, offset=64))
 print('Piece:\n%s\n%s' % enum_to_bytes(Piece, offset=64))
 knight_moves = [-33, -31, -18, -14, 14, 18, 31, 33];
 print('Knight moves:\n%s\n%s' % list_to_bytes(knight_moves, offset=64))
+
+default_board = [-4,-2,-3,-5,-6,-3,-2,-4,0,0,0,4,0,0,0,0,\
+                      -1,-1,-1,-1,-1,-1,-1,-1,0,0,0,0,0,0,0,0,\
+                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+                      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+                      1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,\
+                      4,2,3,5,6,3,2,4,0,0,0,116,0,0,0,0]
+print('Default board:\n%s\n%s' % list_to_bytes(default_board, offset=8))

@@ -202,13 +202,13 @@ class Chess:
                     self.figures[to_idx + Direction.DOWN.value] = 0
         # take care of the double step
         if from_fig == Piece.BLACK_PAWN.value:
-            # diffrence in index should be higher than 17 -> moved at least 2 squares
-            if abs(to_idx - from_idx) > 20:
+            # difference in index should be higher than 16 -> moved at least 2 squares
+            if abs(to_idx - from_idx) > 16:
                 self.figures[Flags.BLACK_EN_PASSANT.value] = to_idx + Direction.UP.value
         if from_fig == Piece.WHITE_PAWN.value:
-            # diffrence in index should be higher than 17 -> moved at least 2 squares
-            if abs(to_idx - from_idx) > 20:
-                self.figures[Flags.BLACK_EN_PASSANT.value] = to_idx + Direction.DOWN.value
+            # difference in index should be higher than 16 -> moved at least 2 squares
+            if abs(to_idx - from_idx) > 16:
+                self.figures[Flags.WHITE_EN_PASSANT.value] = to_idx + Direction.DOWN.value
 
         # main move
         self.figures[to_idx] = self.figures[from_idx]

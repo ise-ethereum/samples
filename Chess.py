@@ -137,19 +137,19 @@ class Chess:
         # it already passed valid we just need to move the rook
         if from_fig == Piece.BLACK_KING.value:
             self.figures[Flags.BLACK_KING_POS.value] = to_idx
-            if from_idx == 4 and to_idx == 1:
+            if from_idx == 4 and to_idx == 2:
                 self.figures[0] = 0
-                self.figures[2] = Piece.BLACK_ROOK.value
+                self.figures[3] = Piece.BLACK_ROOK.value
             if from_idx == 4 and to_idx == 6:
                 self.figures[7] = 0
                 self.figures[5] = Piece.BLACK_ROOK.value
         if from_fig == Piece.WHITE_KING.value:
             self.figures[Flags.WHITE_KING_POS.value] = to_idx
-            if from_idx == 116 and to_idx == 112:
+            if from_idx == 116 and to_idx == 114:
                 self.figures[112] = 0
-                self.figures[114] = Piece.WHITE_ROOK.value
+                self.figures[115] = Piece.WHITE_ROOK.value
             if from_idx == 116 and to_idx == 118:
-                self.figures[118] = 0
+                self.figures[119] = 0
                 self.figures[117] = Piece.WHITE_ROOK.value
         # taking care of the en passant hit
         if from_fig == Piece.BLACK_PAWN.value:

@@ -12,19 +12,6 @@ class TestChess(TestCase):
         self.test_black = Chess.Chess()
         self.test_white = Chess.Chess()
         self.test_white.figures[Chess.Flags.CURRENT_PLAYER.value]= Chess.Player.WHITE.value
-    def test_print_Game(self):
-        self.test_black.print_game_indexes()
-
-    def test_print_board(self):
-        self.test_black.print_board()
-
-    def test_set_board(self):
-        self.test_black._set_figure(1, 1, -2)
-        self.test_black.print_board()
-
-    def test_danger_direction(self):
-        self.test_black.print_game_indexes()
-        print(self.test_black._get_direction(35, 19))
 
 # general tests should all be checked by the sanity check
     def test_moving_outside_the_field(self):
@@ -81,6 +68,7 @@ class TestChess(TestCase):
         # hitting something
         self.setUp()
         self.assertTrue(self.test_white.move(22,7,Chess.Player.WHITE))
+        self.test_white.print_board()
 
     def test_temp(self):
         # en passant hit
@@ -145,23 +133,6 @@ class TestChess(TestCase):
         self.assertFalse(self.test_white.move(119,49,Chess.Player.WHITE))
         # moving that way not possible
         self.assertFalse(self.test_white.move(119,2,Chess.Player.WHITE))
-
-    @unittest.skip
-    def test_check(self):
-        self.test_black.move(19, 64, Chess.Player.BLACK)
-        self.test_black.print_board()
-        self.test_black.move(19, 49, Chess.Player.BLACK)
-        self.test_black.print_board()
-
-    def test_get_first_figure(self):
-        print(self.test_black._get_first_figure(Chess.Direction.DOWN, 19))
-        print(self.test_black.print_game_indexes())
-        print(self.test_black.print_board())
-
-    def test_is_direction_free(self):
-        print(self.test_black._is_direction_free(Chess.Direction.DOWN, 19, 115))
-        self.test_black.print_board()
-        self.test_black.print_game_indexes()
 
 if __name__ == '__main__':
     unittest.main()

@@ -164,6 +164,7 @@ class Chess:
             if direction.is_diagonal():
                 if (temp == 0):
                     self.figures[to_idx + Direction.DOWN.value] = 0
+
         # take care of the double step
         if from_fig == Piece.BLACK_PAWN.value:
             # difference in index should be higher than 16 -> moved at least 2 squares
@@ -173,6 +174,15 @@ class Chess:
             # difference in index should be higher than 16 -> moved at least 2 squares
             if abs(to_idx - from_idx) > 16:
                 self.figures[Flags.WHITE_EN_PASSANT.value] = to_idx + Direction.DOWN.value
+        # take care of the fact that a pawn reaches the end
+        if from_fig == Piece.BLACK_PAWN.value:
+            if rank(to_idx)==7:
+                self.figures[from_idx] = Piece.BLACK_QUEEN.value
+        if from_fig == Piece.WHITE_PAWN.value:
+            if rank(to_idx)==0:
+                self.figures[from_idx] = Piece.WHITE_QUEEN.value
+
+
 
         # main move
         self.figures[to_idx] = self.figures[from_idx]

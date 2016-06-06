@@ -26,12 +26,6 @@ class TestChess(TestCase):
         self.test_black.print_game_indexes()
         print(self.test_black._get_direction(35, 19))
 
-    def test_danger_fields_normal(self):
-        list_fields = self.test_black._danger_fields_normal(0, 7)
-        for field in list_fields:
-            self.test_black.board[field] = -1
-        self.test_black.print_game_indexes()
-
 # general tests should all be checked by the sanity check
     def test_moving_outside_the_field(self):
         self.assertFalse(self.test_black.move(4,-1,Chess.Player.BLACK))
@@ -151,12 +145,6 @@ class TestChess(TestCase):
         self.assertFalse(self.test_white.move(119,49,Chess.Player.WHITE))
         # moving that way not possible
         self.assertFalse(self.test_white.move(119,2,Chess.Player.WHITE))
-
-    def test_danger_fields_knight(self):
-        list_fields = self.test_black._danger_fields_knight(68, 23)
-        for field in list_fields:
-            self.test_black.board[field] = -1
-        self.test_black.print_game_indexes()
 
     @unittest.skip
     def test_check(self):

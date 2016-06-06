@@ -21,6 +21,7 @@ class Direction(Enum):
             return False
         return True
 
+
 class Piece(Enum):
     WHITE_KING = -6
     WHITE_QUEEN = -5
@@ -36,9 +37,11 @@ class Piece(Enum):
     BLACK_KNIGHT = 2
     BLACK_PAWN = 1
 
+
 class Player(Enum):
     WHITE = 1
     BLACK = -1
+
 
 class Flags(Enum):
     WHITE_KING_POS = 115 + 8
@@ -48,13 +51,15 @@ class Flags(Enum):
     WHITE_RIGHT_CASTLING = 71 + 8
     BLACK_LEFT_CASTLING = 54 + 8
     BLACK_RIGHT_CASTLING = 55 + 8
-    BLACK_EN_PASSANT = 53+8
-    WHITE_EN_PASSANT = 69+8
-    BLACK_CHECK_FLAG = 52+8
-    WHITE_CHECK_FLAG = 68+8
+    BLACK_EN_PASSANT = 53 + 8
+    WHITE_EN_PASSANT = 69 + 8
+    BLACK_CHECK_FLAG = 52 + 8
+    WHITE_CHECK_FLAG = 68 + 8
+
 
 def rank(index):
-    return int(index/16)
+    return int(index / 16)
+
 
 class Chess:
     def __init__(self):
@@ -123,46 +128,6 @@ class Chess:
     def _set_figure(self, rank, file, piece):
         index = rank * 16 + file
         self.figures[index] = piece
-
-    def _danger_fields_normal(self, king_idx, figure_idx):
-        # get the danger direction
-        direction = self._get_direction(king_idx, figure_idx)
-
-        # add the fields in that direction
-        current_idx = king_idx + direction.value
-        danger_fields = []
-        while not current_idx & 0x88:
-            danger_fields.append(self.board[current_idx])
-            current_idx += direction.value
-        return danger_fields
-
-    def _danger_fields_knight(self, king_idx, figure_idx):
-        direction = self._get_direction(king_idx, figure_idx)
-        # take care of the special knight case
-        # take the first step for both directions
-        current_idx_first = king_idx
-        current_idx_second = king_idx
-        danger_fields = []
-        # move the second step
-        if direction == Direction.UP_RIGHT:
-            current_idx_first = current_idx_first + Direction.UP.value + direction.value
-            current_idx_second = current_idx_second + Direction.RIGHT.value + direction.value
-        if direction == Direction.DOWN_RIGHT:
-            current_idx_first = current_idx_first + Direction.DOWN.value + direction.value
-            current_idx_second = current_idx_second + Direction.RIGHT.value + direction.value
-        if direction == Direction.DOWN_LEFT:
-            current_idx_first = current_idx_first + Direction.DOWN.value + direction.value
-            current_idx_second = current_idx_second + Direction.LEFT.value + direction.value
-        if direction == Direction.UP_LEFT:
-            current_idx_first = current_idx_first + Direction.UP.value + direction.value
-            current_idx_second = current_idx_second + Direction.LEFT.value + direction.value
-
-        # test if the fields are in the array
-        if not current_idx_first & 0x88 and current_idx_first != king_idx:
-            danger_fields.append(self.board[current_idx_first])
-        if not current_idx_second & 0x88 and current_idx_second != king_idx:
-            danger_fields.append(self.board[current_idx_second])
-        return danger_fields
 
     def _make_temporal_move(self, from_idx, to_idx, from_fig, to_fig, color):
 
@@ -242,11 +207,11 @@ class Chess:
             # we found something
             if first_figure_idx:
                 first_figure = self.figures[first_figure_idx]
-                #its an enemy
-                if first_figure*color.value > 0:
+                # its an enemy
+                if first_figure * color.value > 0:
                     #see if the figure can move on the field of the king
-                    king_figure = Piece(Piece.BLACK_KING.value*color.value)
-                    direction = Direction(-1*direction.value)
+                    king_figure = Piece(Piece.BLACK_KING.value * color.value)
+                    direction = Direction(-1 * direction.value)
                     if self._is_move_possible(first_figure_idx, from_idx, first_figure, king_figure.value, direction):
                         check_counter += 1
 
@@ -277,17 +242,17 @@ class Chess:
             return True
         # direction we have to look out
         king_idx = self._get_own_king_pos(color)
-        king_danger_direction = Chess._get_direction(king_idx,from_idx)
+        king_danger_direction = Chess._get_direction(king_idx, from_idx)
         # getting the first figure in that direction
-        first_figure_idx = self._get_first_figure(king_danger_direction,king_idx)
+        first_figure_idx = self._get_first_figure(king_danger_direction, king_idx)
         # we found something
         if first_figure_idx:
             first_figure = self.figures[first_figure_idx]
-            #its an enemy
-            if(first_figure*color.value>0):
+            # its an enemy
+            if (first_figure * color.value > 0):
                 #see if the figure can move on the field of the king
-                king_figure = Piece(Piece.BLACK_KING.value*color.value)
-                direction = Direction(-1*king_danger_direction.value)
+                king_figure = Piece(Piece.BLACK_KING.value * color.value)
+                direction = Direction(-1 * king_danger_direction.value)
                 if self._is_move_possible(first_figure_idx, king_idx, first_figure, king_figure, direction):
                     return False
         return True
@@ -380,21 +345,21 @@ class Chess:
             if from_fig == Piece.BLACK_KING.value:
                 if 4 == from_idx and to_fig == 0:
                     if to_idx == 1 and self.figures[Flags.BLACK_LEFT_CASTLING.value] >= 0:
-                            return True
+                        return True
                     if to_idx == 6 and self.figures[Flags.BLACK_RIGHT_CASTLING.value] >= 0:
-                            return True
+                        return True
             if from_fig == Piece.WHITE_KING.value:
                 if from_idx == 116 and to_fig == 0:
                     if to_idx == 113 and self.figures[Flags.WHITE_LEFT_CASTLING.value] >= 0:
-                            return True
+                        return True
                     if to_idx == 118 and self.figures[Flags.WHITE_RIGHT_CASTLING.value] >= 0:
-                            return True
+                        return True
             return False
 
         # Bishops, Queens, Rooks
         if (abs(from_fig) == Piece.BLACK_BISHOP.value or
-                abs(from_fig) == Piece.BLACK_QUEEN.value or
-                abs(from_fig) == Piece.BLACK_ROOK.value):
+                    abs(from_fig) == Piece.BLACK_QUEEN.value or
+                    abs(from_fig) == Piece.BLACK_ROOK.value):
             if abs(from_fig) == Piece.BLACK_BISHOP.value and not direction.is_diagonal():
                 return False
             if abs(from_fig) == Piece.BLACK_ROOK.value and direction.is_diagonal():
@@ -411,7 +376,7 @@ class Chess:
         if abs(from_fig) == Piece.BLACK_PAWN.value:
             # Black can only move in positive, White negative direction
             if (from_fig == Piece.BLACK_PAWN.value and direction.value < 0 or
-                    from_fig == Piece.WHITE_PAWN.value and direction.value > 0):
+                            from_fig == Piece.WHITE_PAWN.value and direction.value > 0):
                 return False
             # forward move
             if not direction.is_diagonal():
@@ -433,7 +398,8 @@ class Chess:
                     if to_fig * from_fig == 0:
                         if from_fig == Piece.BLACK_PAWN.value and self.figures[Flags.WHITE_EN_PASSANT.value] == to_idx:
                             return True
-                        elif from_fig == Piece.WHITE_PAWN.value and self.figures[Flags.BLACK_EN_PASSANT.value] == to_idx:
+                        elif from_fig == Piece.WHITE_PAWN.value and self.figures[
+                            Flags.BLACK_EN_PASSANT.value] == to_idx:
                             return True
                         else:
                             return False
@@ -452,17 +418,18 @@ class Chess:
     def is_check(self, current_idx, color):
         for direction in Direction:
             # getting the first figure in that direction
-            first_figure_idx = self._get_first_figure(direction,current_idx)
+            first_figure_idx = self._get_first_figure(direction, current_idx)
             # we found something
-            
-            if first_figure_idx>0:
+
+            if first_figure_idx > 0:
                 first_figure = self.figures[first_figure_idx]
-                #its an enemy
-                if(first_figure*color.value>0):
+                # its an enemy
+                if (first_figure * color.value > 0):
                     #see if the figure can move on the field of the king
-                    king_figure = Piece(Piece.BLACK_KING.value*color.value)
-                    direction = Direction(-1*direction.value)
-                    if self._is_move_possible(first_figure_idx,current_idx,first_figure,king_figure.value,direction):
+                    king_figure = Piece(Piece.BLACK_KING.value * color.value)
+                    direction = Direction(-1 * direction.value)
+                    if self._is_move_possible(first_figure_idx, current_idx, first_figure, king_figure.value,
+                                              direction):
                         return True
         return False
 

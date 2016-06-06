@@ -240,6 +240,7 @@ class Chess:
         king_idx = self._get_own_king_pos(color)
         return not self.is_check(king_idx,color)
         # the king gets already checked when he moves
+
         '''
         if abs(from_fig) == Piece.BLACK_KING:
             return True

@@ -113,10 +113,9 @@ class Chess:
         if not self._is_legal(from_idx, to_idx, from_fig, to_fig, player):
             self._roll_back()
             return False
-        self._test_check(from_idx, to_idx, player)
+        #self._test_check(from_idx, to_idx, player)
         # change player
         self.figures[Flags.CURRENT_PLAYER.value] = -self.figures[Flags.CURRENT_PLAYER.value]
-
         return True
 
     def print_board(self):
@@ -225,19 +224,23 @@ class Chess:
         self.figures = self.temp[:]
 
     def _get_own_king_pos(self, color):
-        if color:
+        color_value = color.value
+        if color.value==1:
             return self.figures[Flags.WHITE_KING_POS.value]
         else:
             return self.figures[Flags.BLACK_KING_POS.value]
 
     def _get_enemy_king_pos(self, color):
-        if color:
+        if color.value==1:
             return self.figures[Flags.BLACK_KING_POS.value]
         else:
             return self.figures[Flags.WHITE_KING_POS.value]
 
     def _is_legal(self, from_idx, to_idx, from_fig, to_fig, color):
+        king_idx = self._get_own_king_pos(color)
+        return not self.is_check(king_idx,color)
         # the king gets already checked when he moves
+        '''
         if abs(from_fig) == Piece.BLACK_KING:
             return True
         # direction we have to look out
@@ -256,6 +259,7 @@ class Chess:
                 if self._is_move_possible(first_figure_idx, king_idx, first_figure, king_figure, direction):
                     return False
         return True
+        '''
 
     def _is_valid(self, from_idx, to_idx, from_fig, to_fig, color):
         direction = self._get_direction(from_idx, to_idx)
@@ -431,6 +435,16 @@ class Chess:
                     if self._is_move_possible(first_figure_idx, current_idx, first_figure, king_figure.value,
                                               direction):
                         return True
+        # Knights
+        knight_moves = [-33, -31, -18, -14, 14, 18, 31, 33]
+        for move in knight_moves:
+            current_move = current_idx + move
+            #inside the field
+            if not current_move & 0x88:
+                current_figure = self.figures[current_move]
+                # is an enemy knight
+                if(current_figure*color.value==Piece.WHITE_KNIGHT):
+                    return True
         return False
 
     def _sanity_checks(self, from_idx, to_idx, from_fig, to_fig, player):

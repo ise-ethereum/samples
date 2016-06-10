@@ -39,8 +39,8 @@ class Piece(Enum):
 
 
 class Player(Enum):
-    WHITE = 1
-    BLACK = -1
+    WHITE = -1
+    BLACK = 1
 
 
 class Flags(Enum):
@@ -62,38 +62,45 @@ def rank(index):
 
 
 class Chess:
-    def __init__(self):
+    def __init__(self,bool):
         # not needed helper board to better visualize the board indexes
         self.board = [x for x in range(0, 128)]
         # the actual board containing all the figures and flags
         self.figures = [0 for _ in range(0, 128)]
         # test setup , later here should be the hole board set
-        # black
-        self.figures[0] = Piece.BLACK_ROOK.value
-        self.figures[4] = Piece.BLACK_KING.value
-        self.figures[Flags.BLACK_KING_POS.value] = 4
-        self.figures[7] = Piece.BLACK_ROOK.value
-        self.figures[16] = Piece.BLACK_PAWN.value
-        self.figures[20] = Piece.BLACK_BISHOP.value
-        self.figures[33] = Piece.BLACK_PAWN.value
-        self.figures[55] = Piece.BLACK_BISHOP.value
+        if not bool:
+            # black
+            self.figures[0] = Piece.BLACK_ROOK.value
+            self.figures[4] = Piece.BLACK_KING.value
+            self.figures[Flags.BLACK_KING_POS.value] = 4
+            self.figures[7] = Piece.BLACK_ROOK.value
+            self.figures[16] = Piece.BLACK_PAWN.value
+            self.figures[20] = Piece.BLACK_BISHOP.value
+            self.figures[33] = Piece.BLACK_PAWN.value
+            self.figures[55] = Piece.BLACK_BISHOP.value
 
-        self.figures[22] = Piece.WHITE_PAWN.value
-        self.figures[34] = Piece.WHITE_PAWN.value
-        self.figures[38] = Piece.WHITE_ROOK.value
-        self.figures[49] = Piece.WHITE_PAWN.value
-        self.figures[64] = Piece.WHITE_BISHOP.value
-        self.figures[68] = Piece.WHITE_KNIGHT.value
-        self.figures[96] = Piece.WHITE_KNIGHT.value
-        self.figures[97] = Piece.WHITE_PAWN.value
-        self.figures[112] = Piece.WHITE_ROOK.value
-        self.figures[116] = Piece.WHITE_KING.value
-        self.figures[Flags.WHITE_KING_POS.value] = 116
-        self.figures[118] = Piece.WHITE_ROOK.value
-        self.figures[119] = Piece.WHITE_QUEEN.value
+            self.figures[22] = Piece.WHITE_PAWN.value
+            self.figures[34] = Piece.WHITE_PAWN.value
+            self.figures[38] = Piece.WHITE_ROOK.value
+            self.figures[49] = Piece.WHITE_PAWN.value
+            self.figures[64] = Piece.WHITE_BISHOP.value
+            self.figures[68] = Piece.WHITE_KNIGHT.value
+            self.figures[96] = Piece.WHITE_KNIGHT.value
+            self.figures[97] = Piece.WHITE_PAWN.value
+            self.figures[112] = Piece.WHITE_ROOK.value
+            self.figures[116] = Piece.WHITE_KING.value
+            self.figures[Flags.WHITE_KING_POS.value] = 116
+            self.figures[118] = Piece.WHITE_ROOK.value
+            self.figures[119] = Piece.WHITE_QUEEN.value
+            self.figures[Flags.CURRENT_PLAYER.value] = Player.BLACK.value
+        else:
+            self.figures[4] = Piece.BLACK_KING.value
+            self.figures[Flags.BLACK_KING_POS.value] = 4
 
-        self.figures[Flags.CURRENT_PLAYER.value] = Player.BLACK.value
+            self.figures[116] = Piece.WHITE_KING.value
+            self.figures[Flags.WHITE_KING_POS.value] = 116
 
+            self.figures[Flags.CURRENT_PLAYER.value] = Player.BLACK.value
     def move(self, from_idx, to_idx, player):
         # get the figures at the beginning
         to_fig = self.figures[to_idx]
@@ -123,6 +130,81 @@ class Chess:
 
     def print_game_indexes(self):
         print(np.array(self.board).reshape(8, 16)[:, :8])
+
+    def check_for_stallmate(self,player):
+        king_idx = self._get_own_king_pos(player)
+        # king has to be not in check
+        check_count =self._test_check(king_idx,-1,player)
+
+        if(check_count!=0):
+            return False
+        own_figures_idx =self._get_all_figures(player)
+        for current_figure_idx in own_figures_idx:
+            for index in range(128):
+                if not index & 0x88:
+                    current_figure = self.figures[current_figure_idx]
+                    to_figure = self.figures[index]
+                    if self._is_valid(current_figure_idx,index,current_figure,to_figure,player):
+                        # see if it is legal to do so
+                        # make the move temporarily
+                        temp_fig = to_figure
+                        self.figures[index] = current_figure
+                        self.figures[current_figure_idx] = 0
+                        if self._is_legal(current_figure_idx,index,current_figure,to_figure,player):
+                            # revert the move to have a consistent board
+                            self.figures[index] = temp_fig
+                            self.figures[current_figure_idx] = current_figure
+                            return False
+                        # revert the move to have a consistent board
+                        self.figures[index] = temp_fig
+                        self.figures[current_figure_idx] = current_figure
+        return True
+
+    def check_for_checkmate(self,player):
+        king_idx = self._get_own_king_pos(player)
+        # king has to be check
+        check_count =self._test_check(king_idx,-1,player)
+        if(check_count==0):
+            return False
+        # can we move something in the way or hit the "attacking" figure
+        if(check_count == 1):
+            # get the field of the attacker and all in between
+            danger_fields = self._get_danger_fields(king_idx,player)
+            # get all own figure indexes
+            own_figures_idx = self._get_all_figures(player)
+            # for every field
+            for field in danger_fields:
+                # for every piece that we own
+                for current_figure_idx in own_figures_idx:
+                    current_figure = self.figures[current_figure_idx]
+                    to_figure = self.figures[field]
+                    # see if it can move on a danger field
+                    if self._is_valid(current_figure_idx,field,current_figure,to_figure,player):
+                        # make the move temporarily
+                        temp_fig = to_figure
+                        self.figures[field] = current_figure
+                        self.figures[current_figure_idx] = 0
+                        # see if it is legal to do so
+                        if self._is_legal(current_figure_idx,field,current_figure,to_figure,player):
+                            # revert the move to have a consistent board
+                            self.figures[field] = temp_fig
+                            self.figures[current_figure_idx] = current_figure
+                            return False
+                        # revert the move to have a consistent board
+                        self.figures[field] = temp_fig
+                        self.figures[current_figure_idx] = current_figure
+        # fields around king has to be check
+        for direction in Direction:
+            current_idx = king_idx+direction.value
+            # we are inside the field
+            if not current_idx & 0x88:
+                current_figure = self.figures[current_idx]
+                temp = current_figure*player.value
+                # enemy or empty
+                if temp < 0:
+                    if not self.is_check(current_idx,player):
+                        return False
+        return True
 
     def _set_figure(self, rank, file, piece):
         index = rank * 16 + file
@@ -217,13 +299,23 @@ class Chess:
             if first_figure_idx:
                 first_figure = self.figures[first_figure_idx]
                 # its an enemy
-                if first_figure * color.value > 0:
+                if first_figure * color.value < 0:
                     #see if the figure can move on the field of the king
                     king_figure = Piece(Piece.BLACK_KING.value * color.value)
                     direction = Direction(-1 * direction.value)
                     if self._is_move_possible(first_figure_idx, from_idx, first_figure, king_figure.value, direction):
                         check_counter += 1
 
+        # Knights
+        knight_moves = [-33, -31, -18, -14, 14, 18, 31, 33]
+        for move in knight_moves:
+            current_move = from_idx + move
+            #inside the field
+            if not current_move & 0x88:
+                current_figure = self.figures[current_move]
+                # is an enemy knight
+                if(current_figure*color.value==Piece.WHITE_KNIGHT):
+                    check_counter += 1
         if color == 1:
             self.figures[Flags.WHITE_CHECK_FLAG.value] = check_counter
         if color == -1:
@@ -235,13 +327,13 @@ class Chess:
 
     def _get_own_king_pos(self, color):
         color_value = color.value
-        if color.value==1:
+        if color.value==-1:
             return self.figures[Flags.WHITE_KING_POS.value]
         else:
             return self.figures[Flags.BLACK_KING_POS.value]
 
     def _get_enemy_king_pos(self, color):
-        if color.value==1:
+        if color.value==-1:
             return self.figures[Flags.BLACK_KING_POS.value]
         else:
             return self.figures[Flags.WHITE_KING_POS.value]
@@ -399,12 +491,14 @@ class Chess:
                     return False
                 # simple move
                 if from_idx + direction.value == to_idx:
-                    return True
+                    if to_fig == 0:
+                        return True
                 # double move
                 if from_idx + direction.value + direction.value == to_idx:
                     # Can only do double move starting form specific ranks
                     if 1 == rank(from_idx) or rank(from_idx) == 6:
-                        return True
+                        if to_fig == 0:
+                            return True
                 return False
             # diagonal move
             else:
@@ -439,7 +533,7 @@ class Chess:
             if first_figure_idx > 0:
                 first_figure = self.figures[first_figure_idx]
                 # its an enemy
-                if (first_figure * color.value > 0):
+                if (first_figure * color.value < 0):
                     #see if the figure can move on the field of the king
                     king_figure = Piece(Piece.BLACK_KING.value * color.value)
                     direction = Direction(-1 * direction.value)
@@ -472,9 +566,55 @@ class Chess:
         if from_fig * to_fig > 0:
             return False
         # check if the player is the owner of the figure, also tests for empty figure
-        if self.figures[Flags.CURRENT_PLAYER.value] * from_fig > 0:
+        if self.figures[Flags.CURRENT_PLAYER.value] * from_fig < 0:
             return False
         # check if its the players turn
         if self.figures[Flags.CURRENT_PLAYER.value] != player.value:
             return False
         return True
+
+    def _get_danger_fields(self, king_idx, player):
+        danger_fields = []
+        for direction in Direction:
+            # getting the first figure in that direction
+            first_figure_idx = self._get_first_figure(direction, king_idx)
+            # we found something
+            if first_figure_idx:
+                first_figure = self.figures[first_figure_idx]
+                # its an enemy
+                if first_figure * player.value < 0:
+                    #see if the figure can move on the field of the king
+                    king_figure = Piece(Piece.BLACK_KING.value * player.value)
+                    direction = Direction(-1 * direction.value)
+                    if self._is_move_possible(first_figure_idx, king_idx, first_figure, king_figure.value, direction):
+                        # get all fields that the figure has to pass
+                        current_idx = first_figure_idx
+                        while current_idx != king_idx:
+                            danger_fields.append(current_idx)
+                            current_idx+=direction.value
+
+        # Knights
+        knight_moves = [-33, -31, -18, -14, 14, 18, 31, 33]
+        for move in knight_moves:
+            current_move = king_idx + move
+            #inside the field
+            if not current_move & 0x88:
+                current_figure = self.figures[current_move]
+                # is an enemy knight
+                if(current_figure*player.value==Piece.WHITE_KNIGHT):
+                    danger_fields.append(current_move)
+        return danger_fields
+
+    def _get_all_figures(self,player):
+        figures_index = []
+        # all fields
+        for index in range(128):
+            # that are not on the shadow board
+            if not index&0x88:
+                current_figure = self.figures[index]
+                temp = player.value*current_figure
+                # that hold a figure of the same color
+                if(temp>0):
+                    figures_index.append(index)
+        return figures_index
+

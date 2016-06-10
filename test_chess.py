@@ -9,9 +9,10 @@ __author__ = 'jan'
 
 class TestChess(TestCase):
     def setUp(self):
-        self.test_black = Chess.Chess()
-        self.test_white = Chess.Chess()
+        self.test_black = Chess.Chess(False)
+        self.test_white = Chess.Chess(False)
         self.test_white.figures[Chess.Flags.CURRENT_PLAYER.value]= Chess.Player.WHITE.value
+        self.test_empty_start = Chess.Chess(True)
 
 # general tests should all be checked by the sanity check
     def test_moving_outside_the_field(self):
@@ -61,7 +62,7 @@ class TestChess(TestCase):
 # test for pawn
     def test_move_pawn_valid(self):
         # normal
-        self.assertTrue(self.test_black.move(33,49,Chess.Player.BLACK))
+        self.assertTrue(self.test_black.move(16,32,Chess.Player.BLACK))
         # double move
         self.setUp()
         self.assertTrue(self.test_black.move(16,48,Chess.Player.BLACK))
@@ -133,6 +134,67 @@ class TestChess(TestCase):
         self.assertFalse(self.test_white.move(119,49,Chess.Player.WHITE))
         # moving that way not possible
         self.assertFalse(self.test_white.move(119,2,Chess.Player.WHITE))
+
+    def test_checkmate_valid(self):
+        self.test_empty_start._set_figure(4,4,Chess.Piece.BLACK_ROOK.value)
+        self.test_empty_start._set_figure(4,5,Chess.Piece.BLACK_ROOK.value)
+        self.test_empty_start._set_figure(6,2,Chess.Piece.BLACK_QUEEN.value)
+        # king attacked by a rook far away
+        self.assertTrue(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        # king attacked by a rook that he could hit but would still be in check
+        self.test_empty_start._set_figure(4,5,Chess.Piece.EMPTY.value)
+        self.test_empty_start._set_figure(7,4,Chess.Piece.BLACK_ROOK.value)
+        self.assertTrue(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        # checkmate by something that hits diagional
+        self.test_empty_start._set_figure(7,4,Chess.Piece.EMPTY.value)
+        self.test_empty_start._set_figure(4,1,Chess.Piece.BLACK_BISHOP.value)
+        self.assertTrue(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+
+    def test_checkmate_invalid(self):
+        self.test_empty_start._set_figure(4,5,Chess.Piece.BLACK_ROOK.value)
+        self.test_empty_start._set_figure(6,2,Chess.Piece.BLACK_QUEEN.value)
+        # king not attacked
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        # king attaked but something can be moved in the way
+        self.test_empty_start._set_figure(4,4,Chess.Piece.BLACK_ROOK.value)
+        self.assertTrue(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        self.test_empty_start._set_figure(3,2,Chess.Piece.WHITE_BISHOP.value)
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        # king attacked but the attacker can be killed
+        self.test_empty_start._set_figure(3,2,Chess.Piece.EMPTY.value)
+        self.test_empty_start._set_figure(3,3,Chess.Piece.WHITE_BISHOP.value)
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        # something can be moved in the way vertically
+        self.test_empty_start._set_figure(3,3,Chess.Piece.EMPTY.value)
+        self.test_empty_start._set_figure(5,0,Chess.Piece.WHITE_ROOK.value)
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+
+    def test_stallmate_valid(self):
+        # stallmate just the king cant move
+        self.test_empty_start._set_figure(4,5,Chess.Piece.BLACK_ROOK.value)
+        self.test_empty_start._set_figure(6,2,Chess.Piece.BLACK_QUEEN.value)
+        self.assertTrue(self.test_empty_start.check_for_stallmate(Chess.Player.WHITE))
+        # pawn cant move
+        self.test_empty_start._set_figure(7,2,Chess.Piece.WHITE_PAWN.value)
+        self.assertTrue(self.test_empty_start.check_for_stallmate(Chess.Player.WHITE))
+        # could move but would be check again
+        self.test_empty_start._set_figure(7,0,Chess.Piece.BLACK_QUEEN.value)
+        self.test_empty_start._set_figure(7,1,Chess.Piece.WHITE_ROOK.value)
+        self.test_empty_start.check_for_stallmate(Chess.Player.WHITE)
+
+    def test_stallmate_invalid(self):
+        # king can move
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        self.test_empty_start._set_figure(4,5,Chess.Piece.BLACK_ROOK.value)
+        self.test_empty_start._set_figure(6,2,Chess.Piece.BLACK_QUEEN.value)
+        # something can move
+        self.test_empty_start._set_figure(7,7,Chess.Piece.WHITE_QUEEN.value)
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+        # king is in check
+        self.test_empty_start._set_figure(4,4,Chess.Piece.BLACK_ROOK.value)
+        self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
+
+
 
 if __name__ == '__main__':
     unittest.main()

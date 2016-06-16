@@ -194,6 +194,11 @@ class TestChess(TestCase):
         self.test_empty_start._set_figure(4,4,Chess.Piece.BLACK_ROOK.value)
         self.assertFalse(self.test_empty_start.check_for_checkmate(Chess.Player.WHITE))
 
+    def test_move_count(self):
+        self.setUp()
+        self.assertEqual(self.test_white.getMoveCount(), 0)
+        self.assertTrue(self.test_white.move(68,37,Chess.Player.WHITE))
+        self.assertEqual(self.test_white.getMoveCount(), 1)
 
 
 if __name__ == '__main__':

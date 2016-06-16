@@ -44,6 +44,7 @@ class Player(Enum):
 
 
 class Flags(Enum):
+    MOVE_COUNT = 0 + 8
     WHITE_KING_POS = 115 + 8
     BLACK_KING_POS = 3 + 8
     CURRENT_PLAYER = 48 + 8
@@ -101,6 +102,11 @@ class Chess:
             self.figures[Flags.WHITE_KING_POS.value] = 116
 
             self.figures[Flags.CURRENT_PLAYER.value] = Player.BLACK.value
+        self.figures[Flags.MOVE_COUNT.value] = 0
+
+    def getMoveCount(self):
+        return self.figures[Flags.MOVE_COUNT.value]
+
     def move(self, from_idx, to_idx, player):
         # get the figures at the beginning
         to_fig = self.figures[to_idx]
@@ -123,6 +129,7 @@ class Chess:
         #self._test_check(from_idx, to_idx, player)
         # change player
         self.figures[Flags.CURRENT_PLAYER.value] = -self.figures[Flags.CURRENT_PLAYER.value]
+        self.figures[Flags.MOVE_COUNT.value] += 1
         return True
 
     def print_board(self):

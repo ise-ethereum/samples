@@ -6,16 +6,16 @@ K = 20
 
 x = np.linspace(-800, 800, 1600)
 
-E = np.linspace(-0.9999, 0.9999, 10000)
-difference = (400*np.log10(1/E-1))/(np.log10(10))
-
 prev_s = 20
-for i, d in enumerate(difference):
-    scoreChange = (1-E[i])*20
-    if not math.isnan(d) and prev_s != round(scoreChange):
+for d in range(-999, 999):
+    scoreChange = (1-1/(1+10**(-d/400)))*K
+    if prev_s != round(scoreChange):
         prev_s = round(scoreChange)
-        print(int(scoreChange+1), int(d))
+        print('(diff > %d) scoreChange = %d;' % (round(-1*d), scoreChange+1))
 
+
+
+"""PLOTS"""
 y = 1/(1+10**(x/400))
 p1, = plt.plot(x, y)
 plt.xlabel('$R_B$ - $R_A$ (Elo difference)')
